@@ -1,12 +1,7 @@
 //METHOD 2  (METHOD 1 BELOW)
 //require('dotenv').config({path:'./env'})
  import dotenv from "dotenv"
-// // src/index.js
-// import { connect, models } from './db/index.js';
 
-
-// connect();
-// console.log(models);
 
 
 import connectDB from "./db/index.js"
@@ -16,6 +11,15 @@ dotenv.config({
 })
 
 connectDB()
+
+.then( () => {
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server is running at port : ${process.env.PORT}`);
+    })
+})
+.catch((err) => {
+    console.log("MongoDB connection failed !!",err);
+})
 
 
 
