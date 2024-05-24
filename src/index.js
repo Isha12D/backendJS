@@ -1,6 +1,6 @@
 //METHOD 2  (METHOD 1 BELOW)
 //require('dotenv').config({path:'./env'})
-// import dotenv from "dotenv"
+ import dotenv from "dotenv"
 // // src/index.js
 // import { connect, models } from './db/index.js';
 
@@ -9,34 +9,16 @@
 // console.log(models);
 
 
-// import connectDB from "./db"
+import connectDB from "./db/index.js"
 
-// dotenv.config({
-//     path: './env'
-// })
-
-// connectDB()
-
-
-//from chatgpt
-// src/index.js
-
-// Import dotenv and configure it first
-import dotenv from "dotenv";
 dotenv.config({
-  path: './env'
-});
+    path: './env'
+})
 
-// Import other modules
-import { connect, models } from './db/index.js';
-import connectDB from "./db";
+connectDB()
 
-// Use the imported modules
-connect();
-console.log(models);
 
-// Connect to the database
-connectDB();
+
 
 
 
