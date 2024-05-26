@@ -59,7 +59,7 @@ userSchema.pre("save", async function(next) {
 
     //if condition is applied bcoz we want the method for pswd change only not when any user just chamge his avatar or name or like that
     if(!this.isModified("password")) return next();
-    this.password = bcrypt.hash(this.password,10)
+    this.password = await bcrypt.hash(this.password,10)
     next()
 })
 
