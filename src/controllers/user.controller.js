@@ -3,6 +3,25 @@ import {ApiError} from "../utils/ApiError.js";
 import {User} from "../models/user.models.js";
 import {uploadOnCloudinary} from "../utils/cloudinary.js";
 import {ApiResponse} from "../utils/ApiResponse.js";
+//import { verifyJWT } from "../middlewares/auth.middleware.js";
+
+
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({validateBeforeSave: false})
+
+        return {accessToken, refreshToken}
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating refresh and access token")
+    }
+}
+
 
 const registerUser = asyncHandler(async(req,res) => {
     //S T E P S
@@ -28,7 +47,7 @@ const registerUser = asyncHandler(async(req,res) => {
     }
 
     //step 3
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or:[{username},{email}]
     })
     if(existedUser){
@@ -39,6 +58,11 @@ const registerUser = asyncHandler(async(req,res) => {
     const avatarLocalPath = req.files?.avatar[0]?.path;
     const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
+
+    // let coverImageLocalPath;
+    // if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+    //     coverImageLocalPath = req.files.coverImage[0].path
+    // }
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar file is required")
     }
@@ -74,6 +98,86 @@ const registerUser = asyncHandler(async(req,res) => {
     )
 })
 
-export {
-    registerUser,
+const loginUser = asyncHandler(async(req, res) => {
+    //steps
+    //req body -> data
+    //username or email
+    //find the user 
+    //password check
+    //access and refresh token
+    //send cookie
+
+    //1
+    const {email, username, password} = req.body
+
+    if(!(username || !email)){
+        throw new ApiError(400, "username or password is required")
+    }
+
+    const user = await User.findOne({//findone method is available through mongoose hence caps User is used
+        $or:[{username}, {email}]
+    })
+
+    if(!user){
+        throw new ApiError(404, "User does not exists")
+    }
+
+    //4
+    const isPasswordValid = await user.isPasswordCorrect(password)//this user(no caps) is ours and the method is also ours
+
+    if(!isPasswordValid){
+        throw new ApiError(401, "Invalid user credentials")
+    }
+
+    //5
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    //step 6
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200).cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {  //this is data in apiResponse method
+                user: loggedInUser, accessToken,refreshToken
+            },
+            "User logged in successfully"
+        )
+    )
+
+})
+
+
+//we were not able to logout user hence we made a middleware
+const logoutUser = asyncHandler(async(req, res) => {
+await User.findByIdAndUpdate(
+    req.user._id,
+    {
+        $set:{
+            refreshToken: undefined
+        }
+    },
+    {
+        new: true
+    }
+)
+const options = {
+    httpOnly:true,
+    secure:true
 }
+return res
+.status(200)
+.clearCookie("accessToken", options)
+.clearCookie("refreshToken", options)
+.json(new ApiResponse(200, {}, "User logged Out"))
+})
+
+

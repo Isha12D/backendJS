@@ -95,5 +95,7 @@ userSchema.methods.generateRefreshToken = function(){
         }
     )
 }
+//access tokens are short lived and refresh tokens are long lived
+//something like sometimes we are logged in directly sometimes all process done from starting
 
 export const User = mongoose.model("User", userSchema)
