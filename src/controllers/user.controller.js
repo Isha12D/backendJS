@@ -180,10 +180,6 @@ return res
 .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
-<<<<<<< HEAD
-=======
-
->>>>>>> d174ca61e1001eeb3bf99e76466de59b965d9035
 
 const refreshAccesssToken = asyncHandler(async(req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
