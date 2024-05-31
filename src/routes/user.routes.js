@@ -1,5 +1,5 @@
 import { Router} from "express";
-import { loginUser, logoutUser, registerUser,refreshAccesssToken } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, registerUser,refreshAccesssToken, changeCurrentUserPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getUserWatchHistory } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -27,5 +27,14 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJWT, logoutUser)
 router.route("/refresh-token").post(refreshAccesssToken)
 
+router.route("/change-password").post(verifyJWT,changeCurrentUserPassword)
+router.route("/current-user").get(verifyJWT, getCurrentUser)
+//patch is used bcoz we don't want all details to be updated
+router.route('/update-account').patch(updateAccountDetails)
+router.route("/avatar").patch(verifyJWT, upload.single("avatar"),updateUserAvatar)
+router.route("/cover-image").patch(verifyJWT, upload.single("/coverImage"), updateUserCoverImage)
+//for params
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+router.route("/history").get(verifyJWT, getUserWatchHistory)
 
 export default router
